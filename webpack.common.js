@@ -9,6 +9,7 @@ module.exports = {
   output: {
     filename: "[name].bundle.js",
     path: path.resolve(__dirname, "dist"),
+    publicPath: "/",
     clean: true,
   },
   module: {
@@ -44,8 +45,6 @@ module.exports = {
   plugins: [
     new HtmlWebpackPlugin({
       template: path.resolve(__dirname, "src/index.html"),
-      // Use default 'defer' loading - NOT 'module' to avoid __webpack_module__ errors
-      scriptLoading: "defer",
     }),
     new CopyWebpackPlugin({
       patterns: [
