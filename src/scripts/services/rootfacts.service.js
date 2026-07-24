@@ -135,6 +135,8 @@ class RootFactsService {
         onProgressCallback("Memuat Si Otak (Generative AI)...");
       }
 
+      const fileProgressMap = new Map();
+
       this.generator = await pipeline(
         "text2text-generation",
         "Xenova/LaMini-Flan-T5-77M",
@@ -142,9 +144,16 @@ class RootFactsService {
           quantized: true,
           progress_callback: (progress) => {
             if (onProgressCallback && typeof onProgressCallback === "function") {
-              if (progress.status === "progress") {
-                const percent = Math.round(progress.progress || 0);
-                onProgressCallback(`Memuat Model AI... ${percent}%`);
+              if (progress.status === "progress" && progress.file) {
+                fileProgressMap.set(progress.file, Math.min(100, Math.max(0, progress.progress || 0)));
+
+                let sum = 0;
+                fileProgressMap.forEach((val) => {
+                  sum += val;
+                });
+                const overallPercent = Math.round(sum / fileProgressMap.size);
+
+                onProgressCallback(`Memuat Model AI... ${overallPercent}%`);
               } else if (progress.status === "initiate") {
                 onProgressCallback("Menyiapkan Model AI...");
               } else if (progress.status === "ready") {
