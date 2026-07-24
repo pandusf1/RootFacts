@@ -3,6 +3,7 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 
 module.exports = {
+  target: ["web", "es2020"],
   // Enable ES module output so import.meta (used by @huggingface/transformers)
   // is valid in the browser without causing "Cannot use import.meta outside a module"
   experiments: {
