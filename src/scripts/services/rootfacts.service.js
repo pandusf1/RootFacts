@@ -1,8 +1,9 @@
 import { pipeline, env } from "@huggingface/transformers";
 
-// Fetch remote models directly from Hugging Face hub (local models = false avoids Netlify HTML fallback 404s)
+// Configure Transformers.js env so local paths point directly to remote Hugging Face Hub
 env.allowLocalModels = false;
 env.allowRemoteModels = true;
+env.localModelPath = "https://huggingface.co/";
 
 const FALLBACK_FACTS = {
   Beetroot: {
