@@ -139,12 +139,11 @@ class RootFactsService {
         "Xenova/LaMini-Flan-T5-77M",
         {
           quantized: true,
-          dtype: "q4",
           progress_callback: (progress) => {
             if (onProgressCallback && typeof onProgressCallback === "function") {
               if (progress.status === "progress") {
                 const percent = Math.round(progress.progress || 0);
-                onProgressCallback(`Memuat AI: ${progress.file} (${percent}%)`);
+                onProgressCallback(`Memuat AI: ${progress.file || "weights"} (${percent}%)`);
               } else if (progress.status === "done") {
                 onProgressCallback("Menyiapkan Si Otak...");
               }
@@ -156,8 +155,8 @@ class RootFactsService {
       this.isModelLoaded = true;
       return this.generator;
     } catch (error) {
-      console.warn("⚠️ Local Transformers.js model notice (will use AI fallback engine):", error);
-      this.isModelLoaded = true;
+      console.warn("⚠️ Local Transformers.js model notice (will use AI fallback engine if offline):", error);
+      this.isModelLoaded = false;
       return null;
     }
   }
@@ -195,45 +194,47 @@ class RootFactsService {
       return "Nama sayuran tidak valid.";
     }
 
+    // Ensure model is loaded
+    if (!this.generator) {
+      try {
+        await this.loadModel();
+      } catch (e) {
+        console.warn("Model load attempt failed in generateFacts:", e);
+      }
+    }
+
     this.isGenerating = true;
 
     try {
-      // If generator is available, attempt with 5-second timeout race
       if (this.generator) {
-        let prompt = `Provide a short, interesting fun fact in Indonesian about the vegetable ${cleanVeg}.`;
+        let prompt = `Provide a short, interesting fun fact in Indonesian about ${cleanVeg}.`;
 
         if (activeTone === "funny") {
-          prompt = `Write a short, hilarious joke or funny trivia in Indonesian about the vegetable ${cleanVeg}.`;
+          prompt = `Provide a funny joke or humorous trivia in Indonesian about ${cleanVeg}.`;
         } else if (activeTone === "professional") {
-          prompt = `State a clear nutritional and health benefit fact in Indonesian about ${cleanVeg}.`;
+          prompt = `Provide a clear nutritional and health benefit fact in Indonesian about ${cleanVeg}.`;
         } else if (activeTone === "casual") {
-          prompt = `Share a fun, fascinating trivia story in Indonesian about ${cleanVeg}.`;
+          prompt = `Provide a fun, interesting trivia story in Indonesian about ${cleanVeg}.`;
         }
 
-        const aiPromise = this.generator(prompt, {
-          max_new_tokens: 100,
+        const output = await this.generator(prompt, {
+          max_new_tokens: 80,
           temperature: 0.7,
           top_p: 0.9,
           do_sample: true,
         });
 
-        // 5-second timeout to prevent hanging UI
-        const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error("AI generation timeout")), 5000)
-        );
-
-        const output = await Promise.race([aiPromise, timeoutPromise]);
         this.isGenerating = false;
 
         if (output && output.length > 0 && output[0].generated_text) {
           const generated = output[0].generated_text.trim();
-          if (generated.length > 10) {
+          if (generated.length > 5) {
             return generated;
           }
         }
       }
     } catch (err) {
-      console.warn("ℹ️ Using fast fallback fun fact for", cleanVeg, ":", err.message);
+      console.warn("ℹ️ Transformers.js generation fallback:", err.message);
     }
 
     this.isGenerating = false;

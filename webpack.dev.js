@@ -45,13 +45,13 @@ module.exports = merge(common, {
           },
         },
         {
-          urlPattern: /^https:\/\/(?:cdn-lfs|huggingface\.co|cdn\.jsdelivr\.net|unpkg\.com|fonts\.googleapis\.com|fonts\.gstatic\.com)/i,
+          urlPattern: /huggingface\.co|hf\.co|cdn-lfs|onnxruntime|jsdelivr|unpkg|googleapis|gstatic/i,
           handler: "CacheFirst",
           options: {
             cacheName: "external-resources-cache",
             expiration: {
-              maxEntries: 200,
-              maxAgeSeconds: 60 * 24 * 60 * 60,
+              maxEntries: 300,
+              maxAgeSeconds: 365 * 24 * 60 * 60,
             },
             cacheableResponse: {
               statuses: [0, 200],

@@ -229,17 +229,20 @@ class HomePresenter {
 
     try {
       const visionResult = await this.detectionService.loadModel((percentage) => {
-        this._updateStatus(`Menunggu Model... ${percentage}%`, "loading");
+        this._updateStatus(`Memuat Deteksi: ${percentage}%`, "loading");
       });
 
       const backendName = visionResult.backend?.toUpperCase() || "WEBGL";
-      this._updateStatus(`Model Siap (${backendName})`, "ready");
 
-      this.rootFactsService.loadModel((statusText) => {
-        console.log("RootFacts status:", statusText);
-      }).catch((err) => {
-        console.warn("Transformers.js background preload error:", err);
-      });
+      try {
+        await this.rootFactsService.loadModel((statusText) => {
+          this._updateStatus(statusText, "loading");
+        });
+      } catch (tfErr) {
+        console.warn("Transformers.js load warning:", tfErr);
+      }
+
+      this._updateStatus(`Model Siap (${backendName})`, "ready");
     } catch (error) {
       console.error("Gagal inisialisasi model:", error);
       this._updateStatus("Error Memuat Model", "error");

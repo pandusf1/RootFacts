@@ -10,7 +10,9 @@ import RootFactsService from "../../services/rootfacts.service.js";
 import HomePresenter from "./home-presenter.js";
 
 export default class HomePage {
-  #presenter = null;
+  constructor() {
+    this._presenter = null;
+  }
 
   async render() {
     return `
@@ -28,13 +30,13 @@ export default class HomePage {
     const detectionService = new DetectionService();
     const rootFactsService = new RootFactsService();
 
-    this.#presenter = new HomePresenter({
+    this._presenter = new HomePresenter({
       view: this,
       cameraService,
       detectionService,
       rootFactsService,
     });
 
-    await this.#presenter.init();
+    await this._presenter.init();
   }
 }
