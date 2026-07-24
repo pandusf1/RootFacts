@@ -1,7 +1,7 @@
 import { pipeline, env } from "@huggingface/transformers";
 
-// Allow caching and remote fetching fallback
-env.allowLocalModels = true;
+// Fetch remote models directly from Hugging Face hub (local models = false avoids Netlify HTML fallback 404s)
+env.allowLocalModels = false;
 env.allowRemoteModels = true;
 
 const FALLBACK_FACTS = {
