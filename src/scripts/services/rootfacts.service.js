@@ -144,11 +144,9 @@ class RootFactsService {
             if (onProgressCallback && typeof onProgressCallback === "function") {
               if (progress.status === "progress") {
                 const percent = Math.round(progress.progress || 0);
-                const fileName = progress.file ? progress.file.split("/").pop() : "model";
-                onProgressCallback(`Memuat AI: ${fileName} (${percent}%)`);
+                onProgressCallback(`Memuat Model AI... ${percent}%`);
               } else if (progress.status === "initiate") {
-                const fileName = progress.file ? progress.file.split("/").pop() : "model";
-                onProgressCallback(`Mengunduh AI: ${fileName}...`);
+                onProgressCallback("Menyiapkan Model AI...");
               } else if (progress.status === "ready") {
                 onProgressCallback("Si Otak Siap!");
               }

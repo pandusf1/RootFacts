@@ -93,6 +93,16 @@ body {
   border-radius: var(--radius-full);
   font-size: 0.75rem;
   color: var(--text-secondary);
+  max-width: 220px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#status-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .status-dot {
