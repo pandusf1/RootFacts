@@ -25,6 +25,7 @@ module.exports = merge(common, {
       clientsClaim: true,
       skipWaiting: true,
       navigateFallback: "/index.html",
+      navigateFallbackDenylist: [/^\/model\//, /^\/models\//, /^https:\/\//, /\.[a-z0-9]+$/i],
       exclude: [/_redirects$/, /\.map$/],
       maximumFileSizeToCacheInBytes: 30 * 1024 * 1024,
       runtimeCaching: [
