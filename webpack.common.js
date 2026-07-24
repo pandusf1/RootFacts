@@ -36,7 +36,8 @@ module.exports = {
   },
   plugins: [
     new webpack.DefinePlugin({
-      "import.meta.url": "typeof document !== 'undefined' ? location.href : ''",
+      "import.meta.url": "JSON.stringify(typeof document !== 'undefined' ? location.href : '')",
+      "import.meta": "({ url: typeof document !== 'undefined' ? location.href : '' })",
     }),
     new HtmlWebpackPlugin({
       template: path.resolve(__dirname, "src/index.html"),
