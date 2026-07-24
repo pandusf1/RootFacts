@@ -3,6 +3,11 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 
 module.exports = {
+  // Enable ES module output so import.meta (used by @huggingface/transformers)
+  // is valid in the browser without causing "Cannot use import.meta outside a module"
+  experiments: {
+    outputModule: true,
+  },
   entry: {
     app: path.resolve(__dirname, "src/scripts/index.js"),
   },
@@ -10,6 +15,7 @@ module.exports = {
     filename: "[name].bundle.js",
     path: path.resolve(__dirname, "dist"),
     clean: true,
+    module: true,
   },
   module: {
     rules: [
@@ -23,7 +29,17 @@ module.exports = {
         use: {
           loader: "babel-loader",
           options: {
-            presets: ["@babel/preset-env"],
+            presets: [
+              [
+                "@babel/preset-env",
+                {
+                  // Target modern browsers that support ES modules
+                  // This avoids transforming import.meta which breaks ONNX runtime
+                  targets: { esmodules: true },
+                  modules: false,
+                },
+              ],
+            ],
           },
         },
       },
@@ -32,18 +48,12 @@ module.exports = {
         use: ["style-loader", "css-loader"],
       },
     ],
-    // Prevent Webpack from transforming import.meta (used by ONNX/Transformers.js)
-    // Without this, production build generates __webpack_module__ which is undefined
-    parser: {
-      javascript: {
-        importMeta: false,
-      },
-    },
   },
   plugins: [
     new HtmlWebpackPlugin({
       template: path.resolve(__dirname, "src/index.html"),
       filename: "index.html",
+      scriptLoading: "module",
     }),
     new CopyWebpackPlugin({
       patterns: [
