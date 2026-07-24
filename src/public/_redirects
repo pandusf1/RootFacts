@@ -1,3 +1,6 @@
-/models/*   /404.html   404
-/Xenova/*   /404.html   404
-/*          /index.html 200
+/*.json      /404.html   404
+/*.onnx      /404.html   404
+/*.bin       /404.html   404
+/models/*    /404.html   404
+/Xenova/*    /404.html   404
+/*           /index.html 200
