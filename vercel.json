@@ -1,0 +1,10 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "cleanUrls": true,
+  "rewrites": [
+    { "source": "/models/(.*)", "destination": "/404" },
+    { "source": "/Xenova/(.*)", "destination": "/404" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
