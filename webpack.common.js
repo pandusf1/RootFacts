@@ -32,6 +32,13 @@ module.exports = {
         use: ["style-loader", "css-loader"],
       },
     ],
+    // Prevent Webpack from transforming import.meta (used by ONNX/Transformers.js)
+    // Without this, production build generates __webpack_module__ which is undefined
+    parser: {
+      javascript: {
+        importMeta: false,
+      },
+    },
   },
   plugins: [
     new HtmlWebpackPlugin({
