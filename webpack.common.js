@@ -37,6 +37,7 @@ module.exports = {
     new HtmlWebpackPlugin({
       template: path.resolve(__dirname, "src/index.html"),
       filename: "index.html",
+      scriptLoading: "module",
     }),
     new CopyWebpackPlugin({
       patterns: [
