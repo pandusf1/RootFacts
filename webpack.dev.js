@@ -32,30 +32,45 @@ module.exports = merge(common, {
       maximumFileSizeToCacheInBytes: 30 * 1024 * 1024,
       runtimeCaching: [
         {
-          urlPattern: /\.(?:png|jpg|jpeg|svg|ico|json|bin)$/i,
+          urlPattern: /^\/model\/.*\.(?:json|bin)$/i,
           handler: "CacheFirst",
           options: {
-            cacheName: "models-and-assets",
+            cacheName: "local-models-cache",
             expiration: {
               maxEntries: 100,
               maxAgeSeconds: 30 * 24 * 60 * 60,
             },
             cacheableResponse: {
-              statuses: [0, 200],
+              statuses: [200],
             },
           },
         },
         {
-          urlPattern: /huggingface\.co|hf\.co|cdn-lfs|onnxruntime|jsdelivr|unpkg|googleapis|gstatic/i,
-          handler: "CacheFirst",
+          urlPattern: /huggingface\.co|hf\.co|cdn-lfs|onnxruntime/i,
+          handler: "NetworkFirst",
           options: {
-            cacheName: "external-resources-cache",
+            cacheName: "transformers-huggingface-cache",
+            networkTimeoutSeconds: 10,
             expiration: {
               maxEntries: 300,
               maxAgeSeconds: 365 * 24 * 60 * 60,
             },
             cacheableResponse: {
-              statuses: [0, 200],
+              statuses: [200],
+            },
+          },
+        },
+        {
+          urlPattern: /jsdelivr|unpkg|googleapis|gstatic/i,
+          handler: "CacheFirst",
+          options: {
+            cacheName: "external-cdns-cache",
+            expiration: {
+              maxEntries: 100,
+              maxAgeSeconds: 60 * 24 * 60 * 60,
+            },
+            cacheableResponse: {
+              statuses: [200],
             },
           },
         },
