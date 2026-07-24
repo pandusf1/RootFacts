@@ -22,6 +22,10 @@ module.exports = merge(common, {
     }),
     new WorkboxWebpackPlugin.GenerateSW({
       swDest: "sw.js",
+      clientsClaim: true,
+      skipWaiting: true,
+      navigateFallback: "/index.html",
+      exclude: [/_redirects$/, /\.map$/],
       maximumFileSizeToCacheInBytes: 30 * 1024 * 1024,
       runtimeCaching: [
         {
