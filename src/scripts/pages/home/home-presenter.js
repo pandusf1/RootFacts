@@ -225,7 +225,7 @@ class HomePresenter {
   }
 
   async _initializeModels() {
-    this._updateStatus("Menunggu Model... 0%", "loading");
+    this._updateStatus("Memuat Deteksi... 0%", "loading");
 
     try {
       const visionResult = await this.detectionService.loadModel((percentage) => {
@@ -234,15 +234,15 @@ class HomePresenter {
 
       const backendName = visionResult.backend?.toUpperCase() || "WEBGL";
 
-      try {
-        await this.rootFactsService.loadModel((statusText) => {
-          this._updateStatus(statusText, "loading");
-        });
-      } catch (tfErr) {
+      // Load Generative AI text model with live progress feedback
+      this.rootFactsService.loadModel((statusText) => {
+        this._updateStatus(statusText, "loading");
+      }).then(() => {
+        this._updateStatus(`Model Siap (${backendName})`, "ready");
+      }).catch((tfErr) => {
         console.warn("Transformers.js load warning:", tfErr);
-      }
-
-      this._updateStatus(`Model Siap (${backendName})`, "ready");
+        this._updateStatus(`Model Siap (${backendName})`, "ready");
+      });
     } catch (error) {
       console.error("Gagal inisialisasi model:", error);
       this._updateStatus("Error Memuat Model", "error");

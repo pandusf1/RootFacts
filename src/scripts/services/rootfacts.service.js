@@ -143,9 +143,13 @@ class RootFactsService {
             if (onProgressCallback && typeof onProgressCallback === "function") {
               if (progress.status === "progress") {
                 const percent = Math.round(progress.progress || 0);
-                onProgressCallback(`Memuat AI: ${progress.file || "weights"} (${percent}%)`);
-              } else if (progress.status === "done") {
-                onProgressCallback("Menyiapkan Si Otak...");
+                const fileName = progress.file ? progress.file.split("/").pop() : "model";
+                onProgressCallback(`Memuat AI: ${fileName} (${percent}%)`);
+              } else if (progress.status === "initiate") {
+                const fileName = progress.file ? progress.file.split("/").pop() : "model";
+                onProgressCallback(`Mengunduh AI: ${fileName}...`);
+              } else if (progress.status === "ready") {
+                onProgressCallback("Si Otak Siap!");
               }
             }
           },
