@@ -1,3 +1,44 @@
+export function generateCameraPermissionModal() {
+  return `
+    <div id="camera-permission-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="modal-card">
+        <div class="modal-icon-wrap">
+          <div class="modal-icon-bg">
+            <i data-lucide="camera" width="36" height="36"></i>
+          </div>
+        </div>
+        <h2 id="modal-title" class="modal-title">Izinkan Akses Kamera</h2>
+        <p class="modal-desc">
+          RootFacts membutuhkan akses kamera untuk mengenali sayuran secara langsung. Kamera <strong>hanya digunakan di perangkat kamu</strong> dan tidak dikirim ke server manapun.
+        </p>
+        <ul class="modal-features">
+          <li>
+            <span class="modal-feature-icon"><i data-lucide="eye" width="14" height="14"></i></span>
+            <span>Deteksi sayuran secara real-time</span>
+          </li>
+          <li>
+            <span class="modal-feature-icon"><i data-lucide="cpu" width="14" height="14"></i></span>
+            <span>AI berjalan 100% di perangkat kamu</span>
+          </li>
+          <li>
+            <span class="modal-feature-icon"><i data-lucide="shield-check" width="14" height="14"></i></span>
+            <span>Privasi terjaga, tidak ada data dikirim</span>
+          </li>
+        </ul>
+        <div class="modal-actions">
+          <button id="btn-allow-camera" class="modal-btn-primary">
+            <i data-lucide="camera" width="18" height="18"></i>
+            Izinkan Kamera
+          </button>
+          <button id="btn-deny-camera" class="modal-btn-secondary">
+            Lewati untuk sekarang
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 export function generateCameraSection() {
   return `
     <section class="camera-section">

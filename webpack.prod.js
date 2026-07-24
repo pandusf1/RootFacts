@@ -22,16 +22,30 @@ module.exports = merge(common, {
     }),
     new WorkboxWebpackPlugin.GenerateSW({
       swDest: "sw.js",
-      maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+      maximumFileSizeToCacheInBytes: 30 * 1024 * 1024,
       runtimeCaching: [
         {
-          urlPattern: /^https:\/\/api\./i,
-          handler: "NetworkFirst",
+          urlPattern: /\.(?:png|jpg|jpeg|svg|ico|json|bin)$/i,
+          handler: "CacheFirst",
           options: {
-            cacheName: "api-cache",
+            cacheName: "models-and-assets",
             expiration: {
-              maxEntries: 50,
-              maxAgeSeconds: 60 * 60 * 24,
+              maxEntries: 100,
+              maxAgeSeconds: 30 * 24 * 60 * 60,
+            },
+            cacheableResponse: {
+              statuses: [0, 200],
+            },
+          },
+        },
+        {
+          urlPattern: /^https:\/\/(?:cdn-lfs|huggingface\.co|cdn\.jsdelivr\.net|unpkg\.com|fonts\.googleapis\.com|fonts\.gstatic\.com)/i,
+          handler: "CacheFirst",
+          options: {
+            cacheName: "external-resources-cache",
+            expiration: {
+              maxEntries: 200,
+              maxAgeSeconds: 60 * 24 * 60 * 60,
             },
             cacheableResponse: {
               statuses: [0, 200],
