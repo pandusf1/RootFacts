@@ -9,7 +9,6 @@ module.exports = {
   output: {
     filename: "[name].bundle.js",
     path: path.resolve(__dirname, "dist"),
-    publicPath: "/",
     clean: true,
   },
   module: {
@@ -24,15 +23,7 @@ module.exports = {
         use: {
           loader: "babel-loader",
           options: {
-            presets: [
-              [
-                "@babel/preset-env",
-                {
-                  targets: { browsers: ["last 2 Chrome versions"] },
-                  modules: false,
-                },
-              ],
-            ],
+            presets: ["@babel/preset-env"],
           },
         },
       },
@@ -45,6 +36,7 @@ module.exports = {
   plugins: [
     new HtmlWebpackPlugin({
       template: path.resolve(__dirname, "src/index.html"),
+      filename: "index.html",
     }),
     new CopyWebpackPlugin({
       patterns: [
