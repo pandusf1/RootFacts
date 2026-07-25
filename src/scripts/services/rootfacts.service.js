@@ -230,6 +230,7 @@ class RootFactsService {
 
         // Prompt structure recommended by reviewer: describe vegetable ${vegetable} in ${tone} way with one sentence
         const prompt = `describe vegetable ${cleanVeg} in ${style} way with one sentence`;
+        console.log("🤖 Generative AI Prompt:", prompt);
 
         const output = await this.generator(prompt, {
           max_new_tokens: 60,
