@@ -219,28 +219,36 @@ class RootFactsService {
 
     try {
       if (this.generator) {
-        let prompt = `Provide a short, interesting fun fact in Indonesian about ${cleanVeg}.`;
+        // Construct prompt using reviewer's recommended context structure
+        const toneStyleMap = {
+          normal: "informative",
+          funny: "funny and humorous",
+          professional: "healthy and scientific",
+          casual: "fun and lighthearted",
+        };
+        const style = toneStyleMap[activeTone] || "informative";
 
-        if (activeTone === "funny") {
-          prompt = `Provide a funny joke or humorous trivia in Indonesian about ${cleanVeg}.`;
-        } else if (activeTone === "professional") {
-          prompt = `Provide a clear nutritional and health benefit fact in Indonesian about ${cleanVeg}.`;
-        } else if (activeTone === "casual") {
-          prompt = `Provide a fun, interesting trivia story in Indonesian about ${cleanVeg}.`;
-        }
+        // Prompt structure recommended by reviewer: describe vegetable ${vegetable} in ${tone} way with one sentence
+        const prompt = `describe vegetable ${cleanVeg} in ${style} way with one sentence`;
 
         const output = await this.generator(prompt, {
-          max_new_tokens: 80,
-          temperature: 0.7,
-          top_p: 0.9,
-          do_sample: true,
+          max_new_tokens: 60,
+          do_sample: false, // Greedy decoding prevents random hallucinations
         });
 
         this.isGenerating = false;
 
         if (output && output.length > 0 && output[0].generated_text) {
           const generated = output[0].generated_text.trim();
-          if (generated.length > 5) {
+
+          // Validation check per reviewer mandate:
+          // Ensure generated output is relevant to the vegetable and does not contain hallucinated tourist/dish keywords
+          const isHallucinated = /tourist|resort|hotel|chinese dish|traditional dish|indonesian dish/i.test(generated);
+          const containsVegKeyword =
+            new RegExp(cleanVeg, "i").test(generated) ||
+            /vegetable|vitamin|fiber|health|nutrient|plant|crop|root|leaf|eat|food|rich|taste|grow|cook/i.test(generated);
+
+          if (generated.length > 10 && !isHallucinated && containsVegKeyword) {
             return generated;
           }
         }

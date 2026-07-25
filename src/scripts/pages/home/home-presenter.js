@@ -351,21 +351,24 @@ class HomePresenter {
   }
 
   async _processPredictionFrame() {
-    if (!this.videoElement || !this.detectionService.model) return;
+    if (!this.videoElement || !this.detectionService.model || !this.isDetecting) return;
 
     try {
       const result = await this.detectionService.predict(this.videoElement);
 
       if (result && result.isValid) {
-        // ALWAYS update prediction label and confidence immediately on every frame
+        const detectedVeg = result.label;
+        const currentTone = this.toneSelect ? this.toneSelect.value : "normal";
+
+        // Stop camera stream & detection loop immediately upon detection (per reviewer mandate)
+        this.stopCamera();
+
+        // Show detection results UI
         this._showResultState(result);
 
-        if (result.label !== this.currentDetectedVeg) {
-          this.currentDetectedVeg = result.label;
-          const currentTone = this.toneSelect ? this.toneSelect.value : "normal";
-          // FIRE AND FORGET (non-blocking) so camera detection loop NEVER freezes
-          this._fetchFunFact(result.label, currentTone);
-        }
+        // Fetch and display fun fact
+        this.currentDetectedVeg = detectedVeg;
+        await this._fetchFunFact(detectedVeg, currentTone);
       }
     } catch (err) {
       console.warn("Prediction loop error:", err);
