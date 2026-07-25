@@ -147,13 +147,27 @@ class RootFactsService {
               if (progress.status === "progress" && progress.file) {
                 fileProgressMap.set(progress.file, Math.min(100, Math.max(0, progress.progress || 0)));
 
-                let sum = 0;
-                fileProgressMap.forEach((val) => {
-                  sum += val;
-                });
-                const overallPercent = Math.round(sum / fileProgressMap.size);
+                // Check if any ONNX model files are currently downloading
+                const onnxFiles = Array.from(fileProgressMap.keys()).filter((k) => k.endsWith(".onnx"));
 
-                onProgressCallback(`Memuat Model AI... ${overallPercent}%`);
+                let overallPercent = 0;
+                if (onnxFiles.length > 0) {
+                  // Average percentage across actual ONNX model weight files
+                  let onnxSum = 0;
+                  onnxFiles.forEach((key) => {
+                    onnxSum += fileProgressMap.get(key);
+                  });
+                  overallPercent = Math.round(onnxSum / onnxFiles.length);
+                } else {
+                  // Initial config file loading phase (scaled 1-10%)
+                  let sum = 0;
+                  fileProgressMap.forEach((val) => {
+                    sum += val;
+                  });
+                  overallPercent = Math.min(10, Math.round(sum / fileProgressMap.size));
+                }
+
+                onProgressCallback(`Memuat Model AI... ${Math.min(99, Math.max(1, overallPercent))}%`);
               } else if (progress.status === "initiate") {
                 onProgressCallback("Menyiapkan Model AI...");
               } else if (progress.status === "ready") {
