@@ -1,5 +1,5 @@
 const APP_CONFIG = {
-  detectionConfidenceThreshold: 80,
+  detectionConfidenceThreshold: 75,
   analyzingDelay: 2000,
   factsGenerationDelay: 2000,
   detectionRetryInterval: 100,

@@ -109,9 +109,22 @@ class DetectionService {
     // Disciplinary memory management using tf.tidy()
     let result = null;
     tf.tidy(() => {
+      // 1. Get raw pixels [height, width, 3]
       const imageTensor = tf.browser.fromPixels(imageElement);
-      const resizedTensor = tf.image.resizeBilinear(imageTensor, [224, 224]);
-      const normalizedTensor = resizedTensor.expandDims(0).div(255.0);
+      const h = imageTensor.shape[0];
+      const w = imageTensor.shape[1];
+
+      // 2. Teachable Machine Center Square Crop (prevents aspect ratio distortion)
+      const minDim = Math.min(h, w);
+      const startY = Math.floor((h - minDim) / 2);
+      const startX = Math.floor((w - minDim) / 2);
+      const croppedTensor = imageTensor.slice([startY, startX, 0], [minDim, minDim, 3]);
+
+      // 3. Resize to 224 x 224
+      const resizedTensor = tf.image.resizeBilinear(croppedTensor, [224, 224]);
+
+      // 4. Teachable Machine MobileNet normalization [-1.0, 1.0]
+      const normalizedTensor = resizedTensor.div(127.5).sub(1.0).expandDims(0);
 
       const prediction = this.model.predict(normalizedTensor);
       const probabilities = prediction.dataSync();
@@ -127,7 +140,7 @@ class DetectionService {
 
       const label = this.labels[maxIdx] || "Unknown";
       const confidence = Math.round(maxProb * 100);
-      const threshold = APP_CONFIG.detectionConfidenceThreshold || 70;
+      const threshold = APP_CONFIG.detectionConfidenceThreshold || 75;
 
       result = {
         label,
