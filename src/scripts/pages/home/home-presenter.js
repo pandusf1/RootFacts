@@ -37,6 +37,11 @@ class HomePresenter {
     this.currentDetectedVeg = "";
     this.targetFps = 30;
 
+    // Detection stability & warm-up tracking
+    this.consecutiveMatchCount = 0;
+    this.lastCandidateVeg = "";
+    this.cameraStartTime = 0;
+
     // DOM Elements
     this.videoElement = null;
     this.canvasElement = null;
@@ -296,6 +301,11 @@ class HomePresenter {
         this.btnToggle.classList.add("active");
       }
 
+      // Reset stability & set warm-up start timestamp
+      this.consecutiveMatchCount = 0;
+      this.lastCandidateVeg = "";
+      this.cameraStartTime = performance.now();
+
       this._startDetectionLoop();
     } catch (error) {
       console.error("Tidak dapat memulai kamera:", error);
@@ -353,22 +363,40 @@ class HomePresenter {
   async _processPredictionFrame() {
     if (!this.videoElement || !this.detectionService.model || !this.isDetecting) return;
 
+    // 1. Initial 1.2s camera warm-up buffer to let camera exposure & focus stabilize
+    if (performance.now() - this.cameraStartTime < 1200) {
+      return;
+    }
+
     try {
       const result = await this.detectionService.predict(this.videoElement);
 
       if (result && result.isValid) {
-        const detectedVeg = result.label;
-        const currentTone = this.toneSelect ? this.toneSelect.value : "normal";
+        // 2. Frame stability check: require 2 consecutive matching frames to prevent false positives
+        if (result.label === this.lastCandidateVeg) {
+          this.consecutiveMatchCount++;
+        } else {
+          this.lastCandidateVeg = result.label;
+          this.consecutiveMatchCount = 1;
+        }
 
-        // Stop camera stream & detection loop immediately upon detection (per reviewer mandate)
-        this.stopCamera();
+        if (this.consecutiveMatchCount >= 2) {
+          const detectedVeg = result.label;
+          const currentTone = this.toneSelect ? this.toneSelect.value : "normal";
 
-        // Show detection results UI
-        this._showResultState(result);
+          // Stop camera stream & detection loop immediately upon stable detection
+          this.stopCamera();
 
-        // Fetch and display fun fact
-        this.currentDetectedVeg = detectedVeg;
-        await this._fetchFunFact(detectedVeg, currentTone);
+          // Show detection results UI
+          this._showResultState(result);
+
+          // Fetch and display fun fact
+          this.currentDetectedVeg = detectedVeg;
+          await this._fetchFunFact(detectedVeg, currentTone);
+        }
+      } else {
+        this.consecutiveMatchCount = 0;
+        this.lastCandidateVeg = "";
       }
     } catch (err) {
       console.warn("Prediction loop error:", err);
