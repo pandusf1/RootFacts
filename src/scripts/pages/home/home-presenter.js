@@ -363,8 +363,8 @@ class HomePresenter {
   async _processPredictionFrame() {
     if (!this.videoElement || !this.detectionService.model || !this.isDetecting) return;
 
-    // 1. Initial 1.2s camera warm-up buffer to let camera exposure & focus stabilize
-    if (performance.now() - this.cameraStartTime < 1200) {
+    // 1. Give 2.0 seconds breathing room after opening camera to let user position vegetable
+    if (performance.now() - this.cameraStartTime < 2000) {
       return;
     }
 
@@ -372,7 +372,7 @@ class HomePresenter {
       const result = await this.detectionService.predict(this.videoElement);
 
       if (result && result.isValid) {
-        // 2. Frame stability check: require 2 consecutive matching frames to prevent false positives
+        // 2. Frame stability check: require 3 consecutive matching frames to lock in detection
         if (result.label === this.lastCandidateVeg) {
           this.consecutiveMatchCount++;
         } else {
@@ -380,7 +380,7 @@ class HomePresenter {
           this.consecutiveMatchCount = 1;
         }
 
-        if (this.consecutiveMatchCount >= 2) {
+        if (this.consecutiveMatchCount >= 3) {
           const detectedVeg = result.label;
           const currentTone = this.toneSelect ? this.toneSelect.value : "normal";
 

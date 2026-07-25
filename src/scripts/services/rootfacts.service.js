@@ -195,6 +195,24 @@ class RootFactsService {
     return `${cleanVeg} adalah sayuran sehat yang kaya akan vitamin, serat, dan nutrisi bermanfaat bagi tubuh!`;
   }
 
+  _validateVegetableFact(generatedText, vegetableName) {
+    if (!generatedText || typeof generatedText !== "string" || generatedText.trim().length < 10) {
+      return false;
+    }
+
+    const text = generatedText.trim();
+
+    // 1. Reject hallucinated phrases (e.g. tourist destination, hotel, Chinese dish, etc.)
+    const isHallucinated = /tourist|resort|hotel|chinese dish|traditional dish|indonesian dish|tourist attraction|historical city/i.test(text);
+    if (isHallucinated) return false;
+
+    // 2. Keyword relevance check: must contain vegetable name or vegetable domain keywords
+    const hasVegName = new RegExp(vegetableName, "i").test(text);
+    const hasVegKeywords = /vegetable|vitamin|fiber|health|nutrient|plant|crop|root|leaf|eat|food|rich|taste|grow|cook|seed|flavor|diet/i.test(text);
+
+    return hasVegName || hasVegKeywords;
+  }
+
   async generateFacts(vegetable, tone = null) {
     const activeTone = tone || this.currentTone;
     if (!vegetable) {
@@ -228,29 +246,38 @@ class RootFactsService {
         };
         const style = toneStyleMap[activeTone] || "informative";
 
-        // Prompt structure recommended by reviewer: describe vegetable ${vegetable} in ${tone} way with one sentence
+        // Explicit prompt instruction per reviewer mandate
         const prompt = `describe vegetable ${cleanVeg} in ${style} way with one sentence`;
-        console.log("🤖 Generative AI Prompt:", prompt);
+        console.log("🤖 Generative AI Prompt (Attempt 1):", prompt);
 
         const output = await this.generator(prompt, {
           max_new_tokens: 60,
           do_sample: false, // Greedy decoding prevents random hallucinations
         });
 
-        this.isGenerating = false;
-
         if (output && output.length > 0 && output[0].generated_text) {
           const generated = output[0].generated_text.trim();
-
-          // Validation check per reviewer mandate:
-          // Ensure generated output is relevant to the vegetable and does not contain hallucinated tourist/dish keywords
-          const isHallucinated = /tourist|resort|hotel|chinese dish|traditional dish|indonesian dish/i.test(generated);
-          const containsVegKeyword =
-            new RegExp(cleanVeg, "i").test(generated) ||
-            /vegetable|vitamin|fiber|health|nutrient|plant|crop|root|leaf|eat|food|rich|taste|grow|cook/i.test(generated);
-
-          if (generated.length > 10 && !isHallucinated && containsVegKeyword) {
+          if (this._validateVegetableFact(generated, cleanVeg)) {
+            this.isGenerating = false;
             return generated;
+          }
+          console.warn("⚠️ Attempt 1 output failed relevance validation. Executing retry generation...");
+        }
+
+        // Automatic Retry (Regeneration) per reviewer mandate
+        const retryPrompt = `describe vegetable ${cleanVeg} in one sentence`;
+        console.log("🔄 Generative AI Prompt (Attempt 2 Retry):", retryPrompt);
+
+        const retryOutput = await this.generator(retryPrompt, {
+          max_new_tokens: 50,
+          do_sample: false,
+        });
+
+        if (retryOutput && retryOutput.length > 0 && retryOutput[0].generated_text) {
+          const retryGenerated = retryOutput[0].generated_text.trim();
+          if (this._validateVegetableFact(retryGenerated, cleanVeg)) {
+            this.isGenerating = false;
+            return retryGenerated;
           }
         }
       }
@@ -259,6 +286,7 @@ class RootFactsService {
     }
 
     this.isGenerating = false;
+    // Display curated Indonesian fallback fact if model generation is irrelevant or unavailable
     return this.getFallbackFact(cleanVeg, activeTone);
   }
 
